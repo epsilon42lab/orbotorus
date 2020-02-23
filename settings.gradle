@@ -1,1 +1,1 @@
-include ':orbotservice',':app',':app-mini'
+include ':orbotservice', ':app', ':app-mini', ':jsocksAndroid', ':APTDispatchLibrary-SampleTransport', ':APTDispatchLibrary-MeekObfs4-Legacy', ':sample', ':goptbundle', ':APTDispatchLibrary-MeekObfs4-Full', ':APTDispatchLibrary-Stegotorus-Full', ':APTDispatchLibrary-Snowflake', ':APTDispatchLibrary-Shadowsocks-Full', ':APTDispatchLibrary'

@@ -55,6 +55,11 @@ import org.torproject.android.service.vpn.VpnPrefs;
 
 import info.pluggabletransports.dispatch.util.TransportListener;
 import info.pluggabletransports.dispatch.util.TransportManager;
+import info.pluggabletransports.dispatch.Dispatcher;
+import info.pluggabletransports.dispatch.Transport;
+import info.pluggabletransports.dispatch.transports.StegotorusTransport;
+
+import static info.pluggabletransports.dispatch.DispatchConstants.PT_TRANSPORTS_STEGOTORUS;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -82,6 +87,8 @@ import java.util.StringTokenizer;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
+import java.util.Properties;
+
 
 import static org.torproject.android.service.vpn.VpnUtils.getSharedPrefs;
 import static org.torproject.android.service.vpn.VpnUtils.killProcess;
@@ -129,6 +136,8 @@ public class OrbotService extends Service implements TorServiceConstants, OrbotC
 
     public static File fileTor;
     public static File fileObfsclient;
+    public static File fileStegotorusClient;
+  
     public static File fileTorRc;
     private File mHSBasePath;
 
@@ -607,6 +616,22 @@ public class OrbotService extends Service implements TorServiceConstants, OrbotC
         }
 
         return false;
+    }
+
+      private boolean stegotorusTransportInstall () {
+
+        new StegotorusTransport().register();
+
+        Properties options = new Properties();
+
+        Transport stegotorusTransport = Dispatcher.get().getTransport(this, "stegotorus", options);
+
+        stegotorusTransport.connect(""); //just force the tranpsort to execute stegotorus;
+        
+        // Transport transport = Dispatcher.get().getTransport(this, "stegotorus", options);
+
+        // return (Transport != null);
+        return true;
     }
 
     private boolean torUpgradeAndConfig() throws IOException, TimeoutException {
@@ -1531,120 +1556,141 @@ public class OrbotService extends Service implements TorServiceConstants, OrbotC
         String exitNodes = prefs.getString("pref_exit_nodes", "");
         String excludeNodes = prefs.getString("pref_exclude_nodes", "");
 
-        if (!useBridges)
-        {
+        // if (!useBridges)
+        // {
 
-            extraLines.append("UseBridges 0").append('\n');
+        //     extraLines.append("UseBridges 0").append('\n');
 
-	        if (Prefs.useVpn()) //set the proxy here if we aren't using a bridge
-	        {
+	    //     if (Prefs.useVpn()) //set the proxy here if we aren't using a bridge
+	    //     {
 
-	        	if (!mIsLollipop)
-	        	{
-		        	String proxyType = "socks5";
-		        	extraLines.append(proxyType + "Proxy" + ' ' + OrbotVpnManager.sSocksProxyLocalhost + ':' + OrbotVpnManager.sSocksProxyServerPort).append('\n');
-	        	};
+	    //     	if (!mIsLollipop)
+	    //     	{
+		//         	String proxyType = "socks5";
+		//         	extraLines.append(proxyType + "Proxy" + ' ' + OrbotVpnManager.sSocksProxyLocalhost + ':' + OrbotVpnManager.sSocksProxyServerPort).append('\n');
+	    //     	};
 
-	        }
-	        else
-	        {
-		        String proxyType = prefs.getString("pref_proxy_type", null);
-		        if (proxyType != null && proxyType.length() > 0)
-		        {
-		            String proxyHost = prefs.getString("pref_proxy_host", null);
-		            String proxyPort = prefs.getString("pref_proxy_port", null);
-		            String proxyUser = prefs.getString("pref_proxy_username", null);
-		            String proxyPass = prefs.getString("pref_proxy_password", null);
+	    //     }
+	    //     else
+	    //     {
+		//         String proxyType = prefs.getString("pref_proxy_type", null);
+		//         if (proxyType != null && proxyType.length() > 0)
+		//         {
+		//             String proxyHost = prefs.getString("pref_proxy_host", null);
+		//             String proxyPort = prefs.getString("pref_proxy_port", null);
+		//             String proxyUser = prefs.getString("pref_proxy_username", null);
+		//             String proxyPass = prefs.getString("pref_proxy_password", null);
 
-		            if ((proxyHost != null && proxyHost.length()>0) && (proxyPort != null && proxyPort.length() > 0))
-		            {
-		            	extraLines.append(proxyType + "Proxy" + ' ' + proxyHost + ':' + proxyPort).append('\n');
+		//             if ((proxyHost != null && proxyHost.length()>0) && (proxyPort != null && proxyPort.length() > 0))
+		//             {
+		//             	extraLines.append(proxyType + "Proxy" + ' ' + proxyHost + ':' + proxyPort).append('\n');
 
-		                if (proxyUser != null && proxyPass != null)
-		                {
-		                    if (proxyType.equalsIgnoreCase("socks5"))
-		                    {
-		                    	extraLines.append("Socks5ProxyUsername" + ' ' + proxyUser).append('\n');
-		                    	extraLines.append("Socks5ProxyPassword" + ' ' + proxyPass).append('\n');
-		                    }
-		                    else
-		                    	extraLines.append(proxyType + "ProxyAuthenticator" + ' ' + proxyUser + ':' + proxyPort).append('\n');
+		//                 if (proxyUser != null && proxyPass != null)
+		//                 {
+		//                     if (proxyType.equalsIgnoreCase("socks5"))
+		//                     {
+		//                     	extraLines.append("Socks5ProxyUsername" + ' ' + proxyUser).append('\n');
+		//                     	extraLines.append("Socks5ProxyPassword" + ' ' + proxyPass).append('\n');
+		//                     }
+		//                     else
+		//                     	extraLines.append(proxyType + "ProxyAuthenticator" + ' ' + proxyUser + ':' + proxyPort).append('\n');
 
-		                }
-		                else if (proxyPass != null)
-		                	extraLines.append(proxyType + "ProxyAuthenticator" + ' ' + proxyUser + ':' + proxyPort).append('\n');
+		//                 }
+		//                 else if (proxyPass != null)
+		//                 	extraLines.append(proxyType + "ProxyAuthenticator" + ' ' + proxyUser + ':' + proxyPort).append('\n');
 
 
 
-		            }
-		        }
-	        }
-        }
+		//             }
+		//         }
+	    //     }
+        // }
+        // else
+        // {
+        //     if (fileObfsclient != null
+        //             && fileObfsclient.exists()
+        //             && fileObfsclient.canExecute()) {
+
+        //         loadBridgeDefaults();
+
+        //         extraLines.append("UseBridges 1").append('\n');
+        //     //    extraLines.append("UpdateBridgesFromAuthority 1").append('\n');
+
+        //         String bridgeList = Prefs.getBridgesList();
+        //         boolean obfs3Bridges = bridgeList.contains("obfs3");
+        //         boolean obfs4Bridges =  bridgeList.contains("obfs4");
+        //         boolean meekBridges = bridgeList.contains("meek");
+
+        //         //check if any PT bridges are needed
+        //         if (obfs3Bridges)
+        //             extraLines.append("ClientTransportPlugin obfs3 exec ")
+        //                     .append(fileObfsclient.getAbsolutePath()).append('\n');
+
+        //         if (obfs4Bridges)
+        //             extraLines.append("ClientTransportPlugin obfs4 exec ")
+        //                     .append(fileObfsclient.getAbsolutePath()).append('\n');
+
+        //         if (meekBridges)
+        //             extraLines.append("ClientTransportPlugin meek_lite exec " + fileObfsclient.getCanonicalPath()).append('\n');
+
+        //         if (bridgeList != null && bridgeList.length() > 5) //longer then 1 = some real values here
+        //         {
+        //             String[] bridgeListLines = bridgeList.trim().split("\\n");
+
+
+        //             int bridgeIdx = (int)Math.round(Math.random()*((double)bridgeListLines.length));
+        //             String bridgeLine = bridgeListLines[bridgeIdx];
+        //             extraLines.append("Bridge ");
+        //             extraLines.append(bridgeLine);
+        //             extraLines.append("\n");
+        //             /**
+        //             for (String bridgeConfigLine : bridgeListLines) {
+        //                 if (!TextUtils.isEmpty(bridgeConfigLine)) {
+        //                     extraLines.append("Bridge ");
+        //                     extraLines.append(bridgeConfigLine.trim());
+        //                     extraLines.append("\n");
+        //                 }
+
+        //             }**/
+
+        //         } else {
+
+        //             String type = "obfs4";
+
+        //             if (meekBridges)
+        //                 type = "meek_lite";
+
+        //             getBridges(type, extraLines);
+
+        //         }
+        //     }
+        //     else
+        //     {
+        //         throw new IOException("Bridge binary does not exist: " + fileObfsclient.getCanonicalPath());
+        //     }
+        // }
+
+        //ignore setting for now and just default to the local stegotorus  bridge
+        if (fileStegotorusClient != null
+            && fileStegotorusClient.exists()
+            && fileStegotorusClient.canExecute())
+          {
+            loadBridgeDefaults();
+
+            String bridgeLine = "127.0.0.1:4999";
+          
+            extraLines.append("UseBridges 1").append('\n');
+            extraLines.append("Bridge ");
+            extraLines.append(bridgeLine);
+            extraLines.append("\n");
+            extraLines.append("Bridge ").append('\n');
+
+          }
         else
-        {
-            if (fileObfsclient != null
-                    && fileObfsclient.exists()
-                    && fileObfsclient.canExecute()) {
-
-                loadBridgeDefaults();
-
-                extraLines.append("UseBridges 1").append('\n');
-            //    extraLines.append("UpdateBridgesFromAuthority 1").append('\n');
-
-                String bridgeList = Prefs.getBridgesList();
-                boolean obfs3Bridges = bridgeList.contains("obfs3");
-                boolean obfs4Bridges =  bridgeList.contains("obfs4");
-                boolean meekBridges = bridgeList.contains("meek");
-
-                //check if any PT bridges are needed
-                if (obfs3Bridges)
-                    extraLines.append("ClientTransportPlugin obfs3 exec ")
-                            .append(fileObfsclient.getAbsolutePath()).append('\n');
-
-                if (obfs4Bridges)
-                    extraLines.append("ClientTransportPlugin obfs4 exec ")
-                            .append(fileObfsclient.getAbsolutePath()).append('\n');
-
-                if (meekBridges)
-                    extraLines.append("ClientTransportPlugin meek_lite exec " + fileObfsclient.getCanonicalPath()).append('\n');
-
-                if (bridgeList != null && bridgeList.length() > 5) //longer then 1 = some real values here
-                {
-                    String[] bridgeListLines = bridgeList.trim().split("\\n");
-
-
-                    int bridgeIdx = (int)Math.round(Math.random()*((double)bridgeListLines.length));
-                    String bridgeLine = bridgeListLines[bridgeIdx];
-                    extraLines.append("Bridge ");
-                    extraLines.append(bridgeLine);
-                    extraLines.append("\n");
-                    /**
-                    for (String bridgeConfigLine : bridgeListLines) {
-                        if (!TextUtils.isEmpty(bridgeConfigLine)) {
-                            extraLines.append("Bridge ");
-                            extraLines.append(bridgeConfigLine.trim());
-                            extraLines.append("\n");
-                        }
-
-                    }**/
-
-                } else {
-
-                    String type = "obfs4";
-
-                    if (meekBridges)
-                        type = "meek_lite";
-
-                    getBridges(type, extraLines);
-
-                }
-            }
-            else
-            {
-                throw new IOException("Bridge binary does not exist: " + fileObfsclient.getCanonicalPath());
-            }
-        }
-
+          {
+            throw new IOException("Bridge binary does not exist: " + fileStegotorusClient.getCanonicalPath());
+            
+          }
 
         //only apply GeoIP if you need it
         File fileGeoIP = new File(appBinHome, GEOIP_ASSET_KEY);
