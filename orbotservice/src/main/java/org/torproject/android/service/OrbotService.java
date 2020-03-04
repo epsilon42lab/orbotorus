@@ -298,8 +298,6 @@ public class OrbotService extends Service implements TorServiceConstants, OrbotC
 
             }
 
-
-
             mNotifyBuilder.setCategory(Notification.CATEGORY_SERVICE);
 
             mNotifyBuilder.setChannelId(NOTIFICATION_CHANNEL_ID);
@@ -561,6 +559,7 @@ public class OrbotService extends Service implements TorServiceConstants, OrbotC
 
             torUpgradeAndConfig();
 
+            stegotorusTransportInstall();
             pluggableTransportInstall();
 
             new Thread(new Runnable ()
@@ -627,8 +626,8 @@ public class OrbotService extends Service implements TorServiceConstants, OrbotC
         Transport stegotorusTransport = Dispatcher.get().getTransport(this, "stegotorus", options);
 
         stegotorusTransport.connect(""); //just force the tranpsort to execute stegotorus;
-        
-        // Transport transport = Dispatcher.get().getTransport(this, "stegotorus", options);
+
+        Transport transport = Dispatcher.get().getTransport(this, "stegotorus", options);
 
         // return (Transport != null);
         return true;
@@ -1671,7 +1670,7 @@ public class OrbotService extends Service implements TorServiceConstants, OrbotC
         // }
 
         //ignore setting for now and just default to the local stegotorus  bridge
-        if (fileStegotorusClient != null
+        if (true || fileStegotorusClient != null
             && fileStegotorusClient.exists()
             && fileStegotorusClient.canExecute())
           {
@@ -1683,7 +1682,6 @@ public class OrbotService extends Service implements TorServiceConstants, OrbotC
             extraLines.append("Bridge ");
             extraLines.append(bridgeLine);
             extraLines.append("\n");
-            extraLines.append("Bridge ").append('\n');
 
           }
         else
